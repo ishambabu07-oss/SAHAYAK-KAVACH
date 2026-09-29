@@ -1,0 +1,22 @@
+# Frontend Requirements for Sahayak Kavach
+# Runtime environment: Node.js >= 18.0.0, npm >= 9.0.0
+
+# Core Framework & Libraries
+# - react >= 18.3.1
+# - react-dom >= 18.3.1
+# - react-router-dom >= 6.28.0
+# - recharts >= 2.13.3
+# - lucide-react >= 0.454.0
+# - axios >= 1.7.7
+
+# Development & Build Tooling
+# - vite >= 5.4.11
+# - @vitejs/plugin-react >= 4.3.3
+# - tailwindcss >= 3.4.15
+# - postcss >= 8.4.49
+# - autoprefixer >= 10.4.20
+
+# Note: JavaScript/React web projects manage dependencies via package.json.
+# To install all dependencies, run:
+#   npm install
+

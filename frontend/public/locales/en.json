@@ -1,1 +1,66 @@
-{}
+{
+  "brand": {
+    "name": "Sahayak Kavach",
+    "tagline": "AI-Powered Psychological Monitoring & Proactive Intervention Engine",
+    "act": "SC/ST (Prevention of Atrocities) Act"
+  },
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "cases": "Caseload",
+    "reports": "Reports",
+    "settings": "Settings",
+    "logout": "Sign Out",
+    "quickExit": "Quick Exit"
+  },
+  "auth": {
+    "victimTab": "Victim Safe Access",
+    "authorityTab": "Authorized Personnel",
+    "victimHeading": "Welcome to Your Safe Space",
+    "dpdpNotice": "Your identity and responses are strictly encrypted under the Digital Personal Data Protection (DPDP) Act 2023.",
+    "phoneLabel": "Registered Mobile Number",
+    "sendOtp": "Send One-Time Passcode",
+    "enterOtp": "Enter the 6-digit verification code",
+    "verifyOtp": "Verify & Enter Safely",
+    "resendOtp": "Resend Code",
+    "authorityHeading": "Authorized Officer Portal",
+    "emailLabel": "Official Email / Government ID",
+    "passwordLabel": "Password",
+    "roleLabel": "Designated Role",
+    "districtLabel": "District",
+    "totpLabel": "2FA TOTP Code",
+    "loginButton": "Secure Sign In"
+  },
+  "victim": {
+    "welcome": "Welcome back. You are safe here.",
+    "wellbeingScore": "Wellbeing Index",
+    "checkinsCompleted": "Completed Check-ins",
+    "supportDays": "Days of Continuous Protection",
+    "startCheckin": "Begin Scheduled Check-In",
+    "requestSupport": "Request Discreet Counselor Assistance",
+    "journeyTitle": "Personal Wellbeing Trajectory",
+    "helpline": "National SC/ST Atrocities Helpline: 1800-202-1989 | 24x7 Women's Helpline: 181"
+  },
+  "checkin": {
+    "warmupTitle": "Let us check in with you",
+    "warmupSubtitle": "Take a calm breath. There are no right or wrong answers. You are completely in control.",
+    "begin": "I am ready to begin",
+    "recordVoice": "Record Voice Response",
+    "stopVoice": "Stop Recording",
+    "next": "Continue",
+    "previous": "Previous Question",
+    "submit": "Submit Check-In",
+    "thankYou": "Thank you for sharing with us today.",
+    "returnHome": "Return to Dashboard"
+  },
+  "authority": {
+    "activeCases": "Active Monitored Cases",
+    "highRiskAlerts": "High-Risk Escalations",
+    "avgResponseTime": "Avg Counselor Response",
+    "resolutionRate": "30-Day Resolution Rate",
+    "trajectoryTitle": "Longitudinal Distress Trajectory Across Districts",
+    "caseloadTitle": "Active Caseload & Triage",
+    "districtOverview": "District Risk Heatmap",
+    "slaCountdown": "SLA Escalation Window"
+  }
+}
