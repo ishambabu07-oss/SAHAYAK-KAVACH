@@ -1,179 +1,38 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Heart, CheckCircle, Calendar, AlertCircle } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Link, Navigate, useLocation } from 'react-router-dom';
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { BarChart3, Check, ChevronRight, FileText, Heart, KeyRound, Languages, LockKeyhole, MessageCircle, Phone, Scale, Send, ShieldCheck, Sparkles, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCheckIn } from '../context/CheckInContext';
+import AdaptiveQuestionCard from '../components/checkin/AdaptiveQuestionCard';
 import Navbar from '../components/common/Navbar';
 import QuickExitButton from '../components/common/QuickExitButton';
-import StatCard from '../components/common/StatCard';
 
-const VictimDashboard = () => {
-  const navigate = useNavigate();
-  // Mock contexts if they are not provided
-  const { user } = useAuth() || { user: { name: 'Survivor' } };
-  const checkInContext = useCheckIn() || {};
-  const checkInHistory = checkInContext.checkInHistory;
+const questions = [
+  { id: 'feeling', category: 'emotional', empathyMessage: 'Take your time. There are no wrong answers here.', text: 'How have you been feeling over the past few days?', responseType: 'scale' },
+  { id: 'safety', category: 'safety', empathyMessage: 'You can skip anything that does not feel right to answer.', text: 'Do you feel comfortable and safe where you are today?', responseType: 'choice', options: ['Yes, I do', 'Mostly, with some worries', 'I would like support', 'I prefer not to answer'] },
+  { id: 'share', category: 'support', empathyMessage: 'A few words are enough. Your counselor is here to listen.', text: 'Is there anything you would like your counselor to know?', responseType: 'text' },
+];
+const tabs = [{ id: 'checkin', label: 'Check-in', icon: Heart }, { id: 'trends', label: 'My journey', icon: BarChart3 }, { id: 'support', label: 'Support', icon: MessageCircle }, { id: 'settings', label: 'Privacy', icon: ShieldCheck }, { id: 'profile', label: 'Profile', icon: ShieldCheck }];
+const Card = ({ children, className = '' }) => <section className={`min-w-0 rounded-2xl border border-[#D1E7DD] bg-white p-5 shadow-sm sm:p-6 ${className}`}>{children}</section>;
 
-  const defaultCheckInData = [
-    { date: '10/01', score: 65 },
-    { date: '10/03', score: 68 },
-    { date: '10/05', score: 72 },
-    { date: '10/07', score: 70 },
-    { date: '10/09', score: 75 },
-    { date: '10/11', score: 80 },
-    { date: '10/13', score: 82 },
-  ];
+function CheckInView({ user }) {
+  const { startCheckIn, completeCheckIn } = useCheckIn(); const [started, setStarted] = useState(false); const [step, setStep] = useState(0); const [answers, setAnswers] = useState({}); const [done, setDone] = useState(false);
+  const hour = new Date().getHours(); const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  const begin = () => { startCheckIn(); setStarted(true); }; const finish = () => { completeCheckIn(); setDone(true); setStarted(false); };
+  return <div className="space-y-6"><div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="mb-1 text-sm font-semibold text-[#2D6A4F]">A quiet space, just for you</p><h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">{greeting}, {user?.name || 'friend'}.</h1><p className="mt-2 text-gray-600">You decide what to share and when. There is no rush.</p></div><div className="rounded-xl bg-[#D1E7DD] px-4 py-3 text-sm font-medium text-[#1C4E3D]">● Your next routine check-in is ready</div></div>
+    {!started && !done && <Card className="bg-gradient-to-br from-white to-[#F3F6F4]"><div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between"><div className="flex gap-4"><div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#D1E7DD]"><Heart className="h-6 w-6 text-[#1C4E3D]" /></div><div><h2 className="font-semibold text-gray-900">A few gentle questions</h2><p className="mt-1 text-sm leading-6 text-gray-600">This usually takes about two minutes. You can pause or skip anything at any time.</p></div></div><button onClick={begin} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#1C4E3D] px-5 py-3 font-semibold text-white hover:bg-[#2D6A4F] focus-visible:ring-4 focus-visible:ring-[#D1E7DD]">Begin when ready <ChevronRight className="h-4 w-4" /></button></div></Card>}
+    {started && <><div className="rounded-xl border border-[#D1E7DD] bg-[#F3F6F4] px-4 py-3 text-sm text-[#1C4E3D]"><Sparkles className="mr-2 inline h-4 w-4" />Thank you for making time for yourself today. You are doing enough.</div><AdaptiveQuestionCard question={questions[step]} currentStep={step + 1} totalSteps={questions.length} onNext={() => setStep(Math.min(step + 1, questions.length - 1))} onPrev={() => setStep(Math.max(step - 1, 0))} onSubmit={finish} onAnswer={(value) => setAnswers({ ...answers, [questions[step].id]: value })} currentAnswer={answers[questions[step].id]} /></>}
+    {done && <Card className="text-center"><Check className="mx-auto h-10 w-10 rounded-full bg-[#D1E7DD] p-2 text-[#1C4E3D]" /><h2 className="mt-4 text-xl font-bold text-gray-900">Thank you for checking in.</h2><p className="mt-2 text-gray-600">Your response is saved securely. Your counselor will only use it to support you.</p><button onClick={() => { setDone(false); setStep(0); setAnswers({}); }} className="mt-5 rounded-xl border border-[#1C4E3D] px-4 py-2 font-semibold text-[#1C4E3D] hover:bg-[#F3F6F4]">Return to check-in</button></Card>}</div>;
+}
 
-  const checkInData = (checkInHistory && checkInHistory.length > 0)
-    ? checkInHistory.map((item) => ({
-        date: new Date(item.date).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' }),
-        score: item.score,
-      }))
-    : defaultCheckInData;
+function TrendsView({ history }) {
+  const data = useMemo(() => history.slice(-8).map((item) => ({ date: new Date(item.date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }), score: item.score })), [history]);
+  return <div className="space-y-6"><div><p className="text-sm font-semibold text-[#2D6A4F]">Your pace, your progress</p><h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">My journey & well-being</h1><p className="mt-2 text-gray-600">These patterns are only for you and your assigned counselor to reflect on together.</p></div><Card><h2 className="font-semibold text-gray-900">Peace & Stability Index</h2><p className="mt-1 text-sm text-gray-600">A gentle snapshot from recent check-ins—not a score you need to chase.</p><div className="mt-5 h-64 w-full sm:h-80"><ResponsiveContainer width="100%" height="100%"><AreaChart data={data} margin={{ top: 10, right: 12, left: -14, bottom: 8 }}><defs><linearGradient id="peace" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#2D6A4F" stopOpacity=".28" /><stop offset="95%" stopColor="#2D6A4F" stopOpacity="0" /></linearGradient></defs><CartesianGrid stroke="#E5EEE9" strokeDasharray="3 3" vertical={false} /><XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#52635C', fontSize: 12 }} dy={10} interval="preserveStartEnd" /><YAxis domain={[0, 100]} axisLine={false} tickLine={false} tick={{ fill: '#52635C', fontSize: 12 }} width={32} /><Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid #D1E7DD' }} formatter={(value) => [`${value}/100`, 'Peace & Stability']} /><Area type="monotone" dataKey="score" stroke="#1C4E3D" strokeWidth={3} fill="url(#peace)" /></AreaChart></ResponsiveContainer></div></Card><div className="grid gap-4 md:grid-cols-3">{[['Last check-in', 'You named what felt manageable today.'], ['Counselor note', 'Small steps count. Let’s keep your preferred pace.'], ['Milestone', 'You have completed three check-ins this week.']].map(([title, text]) => <Card key={title} className="p-5"><p className="text-sm font-semibold text-[#2D6A4F]">◌ {title}</p><p className="mt-3 text-sm leading-6 text-gray-600">{text}</p></Card>)}</div></div>;
+}
 
-  const [showSupportModal, setShowSupportModal] = useState(false);
+function SupportView() { const [sent, setSent] = useState(false); const actions = [[Phone, 'Request counselor callback', 'Ask to be contacted through your preferred safe channel.'], [Scale, 'Legal protection guidance', 'Learn about options without starting a formal request.'], [FileText, 'Relief scheme information', 'Explore support schemes at your own pace.']]; return <div className="space-y-6"><div><p className="text-sm font-semibold text-[#2D6A4F]">Support on your terms</p><h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Discreet support & legal aid</h1><p className="mt-2 text-gray-600">Choose the option that feels safest for you. Requests are private.</p></div><div className="grid gap-4 md:grid-cols-3">{actions.map(([Icon, title, text]) => <button key={title} onClick={() => setSent(true)} className="rounded-2xl border border-[#D1E7DD] bg-white p-5 text-left shadow-sm hover:border-[#2D6A4F] hover:bg-[#F3F6F4] focus-visible:ring-4 focus-visible:ring-[#D1E7DD]"><Icon className="h-6 w-6 text-[#1C4E3D]" /><h2 className="mt-4 font-semibold text-gray-900">{title}</h2><p className="mt-2 text-sm leading-6 text-gray-600">{text}</p></button>)}</div>{sent && <div role="status" className="rounded-xl bg-[#D1E7DD] p-4 text-sm font-medium text-[#1C4E3D]"><Check className="mr-2 inline h-4 w-4" />Your private request has been received. We will use only your preferred contact method.</div>}<div className="grid gap-6 lg:grid-cols-2"><Card><div className="flex gap-4"><div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#D1E7DD] font-bold text-[#1C4E3D]">AS</div><div><h2 className="font-semibold text-gray-900">Ananya Sharma</h2><p className="text-sm text-gray-600">Assigned counselor · Mon–Fri, 10 AM–5 PM</p></div></div><label htmlFor="message" className="mt-5 block text-sm font-medium text-gray-700">Encrypted message</label><textarea id="message" rows="3" placeholder="Write only what feels comfortable…" className="mt-2 w-full rounded-xl border border-gray-300 p-3 text-sm focus:border-[#1C4E3D] focus:ring-2 focus:ring-[#D1E7DD]" /><button onClick={() => setSent(true)} className="mt-3 inline-flex items-center gap-2 rounded-xl bg-[#1C4E3D] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2D6A4F]"><Send className="h-4 w-4" />Send securely</button></Card><Card><KeyRound className="h-6 w-6 text-[#1C4E3D]" /><h2 className="mt-4 font-semibold text-gray-900">Your coded safety key</h2><p className="mt-2 text-sm leading-6 text-gray-600">Your discreet SOS pattern is set to <strong>two periods (..)</strong>. You can review or change it with your counselor.</p><button className="mt-4 text-sm font-semibold text-[#1C4E3D] underline underline-offset-4">Review safety key</button></Card></div></div>; }
 
-  const upcomingCheckIns = [
-    { id: 1, date: 'Today, 6:00 PM', status: 'upcoming' },
-    { id: 2, date: 'Yesterday', status: 'completed' },
-  ];
+function SettingsView() { const [ivrs, setIvrs] = useState(true); const [whatsapp, setWhatsapp] = useState(false); const Toggle = ({ value, change, title, text }) => <label className="flex cursor-pointer items-start justify-between gap-4 py-4"><span><span className="block font-medium text-gray-900">{title}</span><span className="mt-1 block text-sm text-gray-600">{text}</span></span><input type="checkbox" checked={value} onChange={(event) => change(event.target.checked)} className="mt-1 h-5 w-5 accent-[#1C4E3D]" /></label>; return <div className="space-y-6"><div><p className="text-sm font-semibold text-[#2D6A4F]">You remain in control</p><h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Privacy & account settings</h1></div><div className="grid gap-6 lg:grid-cols-2"><Card><div className="flex items-center gap-3"><LockKeyhole className="h-5 w-5 text-[#1C4E3D]" /><h2 className="font-semibold text-gray-900">Consent preferences</h2></div><div className="mt-3 divide-y divide-[#D1E7DD]"><Toggle value={ivrs} change={setIvrs} title="IVRS check-ins" text="Receive a recorded check-in call at your chosen time." /><Toggle value={whatsapp} change={setWhatsapp} title="WhatsApp check-ins" text="Use only if this is safe and private for you." /></div></Card><Card><div className="flex items-center gap-3"><Languages className="h-5 w-5 text-[#1C4E3D]" /><h2 className="font-semibold text-gray-900">Language preference</h2></div><label htmlFor="language" className="mt-4 block text-sm text-gray-600">Choose a language for this workspace</label><select id="language" defaultValue="English" className="mt-2 w-full rounded-xl border border-gray-300 bg-white p-3 focus:border-[#1C4E3D] focus:ring-2 focus:ring-[#D1E7DD]"><option>English</option><option>हिंदी (Hindi)</option><option>ଓଡ଼ିଆ (Odia)</option><option>Regional dialect — ask counselor</option></select></Card><Card className="lg:col-span-2"><div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><div className="flex items-center gap-3"><Trash2 className="h-5 w-5 text-[#C05621]" /><h2 className="font-semibold text-gray-900">Data & consent withdrawal</h2></div><p className="mt-2 max-w-2xl text-sm leading-6 text-gray-600">Your workspace data is encrypted. You can ask to see what is stored or withdraw consent under the DPDP Act 2023.</p></div><button className="shrink-0 rounded-xl border border-[#C05621] px-4 py-2 font-semibold text-[#C05621] hover:bg-orange-50">Request data deletion</button></div></Card></div></div>; }
 
-  const currentDate = new Date().toLocaleDateString('en-US', { 
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
-  });
-
-  return (
-    <div className="min-h-screen bg-[#F8FAF9] font-sans">
-      <Navbar variant="victim" />
-      <QuickExitButton />
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Greeting Section */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome back, {user?.name || 'Friend'}. You are safe here.</h1>
-          <p className="text-gray-600">{currentDate} | Next check-in scheduled for Today at 6:00 PM</p>
-        </div>
-
-        {/* Stat Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <StatCard 
-            title="Your Wellbeing Score" 
-            value="82/100" 
-            icon={<Heart className="w-6 h-6 text-[#1C4E3D]" />}
-            trend="+2 points this week"
-            trendPositive={true}
-          />
-          <StatCard 
-            title="Check-ins Completed" 
-            value="14" 
-            icon={<CheckCircle className="w-6 h-6 text-[#1C4E3D]" />}
-          />
-          <StatCard 
-            title="Days of Support" 
-            value="45" 
-            icon={<Calendar className="w-6 h-6 text-[#1C4E3D]" />}
-          />
-        </div>
-
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
-          {/* Wellbeing Journey Chart */}
-          <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Your Wellbeing Journey</h2>
-            <div className="h-72 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={checkInData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#1C4E3D" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#1C4E3D" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} />
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '0.75rem', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="score" 
-                    stroke="#1C4E3D" 
-                    strokeWidth={3}
-                    fillOpacity={1} 
-                    fill="url(#colorScore)" 
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Scheduled Check-Ins */}
-          <div className="bg-white rounded-2xl shadow-sm p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Scheduled Check-Ins</h2>
-            <div className="space-y-4">
-              {upcomingCheckIns.map(checkIn => (
-                <div key={checkIn.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-xl bg-gray-50">
-                  <div className="flex items-center space-x-3">
-                    {checkIn.status === 'completed' ? (
-                      <CheckCircle className="w-5 h-5 text-[#38A169]" />
-                    ) : (
-                      <div className="w-5 h-5 rounded-full border-2 border-[#E0A96D]" />
-                    )}
-                    <span className={`font-medium ${checkIn.status === 'completed' ? 'text-gray-500 line-through' : 'text-gray-900'}`}>
-                      {checkIn.date}
-                    </span>
-                  </div>
-                  <span className="text-sm capitalize text-gray-500">{checkIn.status}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
-          <button 
-            onClick={() => navigate('/victim/checkin')}
-            className="w-full sm:w-auto px-8 py-4 bg-[#1C4E3D] hover:bg-[#2D6A4F] text-white rounded-xl font-medium text-lg transition-colors shadow-sm"
-          >
-            Start Check-In
-          </button>
-          <button 
-            onClick={() => setShowSupportModal(true)}
-            className="w-full sm:w-auto px-8 py-4 border-2 border-[#E0A96D] text-gray-800 hover:bg-[#E0A96D] hover:bg-opacity-10 rounded-xl font-medium text-lg transition-colors"
-          >
-            Request Discreet Support
-          </button>
-        </div>
-
-        {/* Helpline Banner */}
-        <div className="bg-white border-t border-gray-200 p-4 rounded-xl shadow-sm flex items-center justify-center space-x-2 text-sm text-gray-600 max-w-2xl mx-auto text-center">
-          <AlertCircle className="w-4 h-4 text-[#C05621]" />
-          <span>National SC/ST Helpline: <strong>1800-xxx-xxxx</strong> | Women Helpline: <strong>181</strong></span>
-        </div>
-      </main>
-
-      {/* Discreet Support Modal */}
-      {showSupportModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 text-center">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">Request Received</h3>
-            <p className="text-gray-600 mb-6">
-              A support counselor will reach out within 24 hours via your preferred channel in a safe and discreet manner.
-            </p>
-            <button 
-              onClick={() => setShowSupportModal(false)}
-              className="px-6 py-3 bg-[#1C4E3D] text-white rounded-xl font-medium hover:bg-[#2D6A4F] w-full"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default VictimDashboard;
+export default function VictimDashboard() { const { user } = useAuth(); const { checkInHistory } = useCheckIn(); const { pathname } = useLocation(); const active = pathname.split('/').pop(); const tab = tabs.some((item) => item.id === active) ? active : 'checkin'; if (pathname === '/victim/dashboard') return <Navigate to="/victim/dashboard/checkin" replace />; const views = { checkin: <CheckInView user={user} />, trends: <TrendsView history={checkInHistory} />, support: <SupportView />, settings: <SettingsView /> }; return <div className="min-h-screen bg-[#F8FAF9] font-sans text-gray-800"><Navbar /><QuickExitButton /><nav aria-label="Victim dashboard" className="sticky top-16 z-30 mb-6 border-y border-[#D1E7DD] bg-[#F8FAF9]/95 backdrop-blur"><div className="mx-auto flex max-w-7xl overflow-x-auto px-2 sm:px-4">{tabs.map(({ id, label, icon: Icon }) => <Link key={id} to={`/victim/dashboard/${id}`} aria-current={tab === id ? 'page' : undefined} className={`flex shrink-0 items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold ${tab === id ? 'border-[#1C4E3D] text-[#1C4E3D]' : 'border-transparent text-gray-600 hover:text-[#1C4E3D]'}`}><Icon className="h-4 w-4" />{label}</Link>)}</div></nav><main className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8"><div className="mb-6 flex items-start gap-3 rounded-2xl border border-[#D1E7DD] bg-[#F3F6F4] p-4 text-sm leading-6 text-[#1C4E3D]"><LockKeyhole className="mt-0.5 h-5 w-5 shrink-0" /><p><strong>End-to-End Encrypted & Anonymous under DPDP Act 2023.</strong> Only your assigned counselor can access this workspace.</p></div>{views[tab]}</main></div>; }

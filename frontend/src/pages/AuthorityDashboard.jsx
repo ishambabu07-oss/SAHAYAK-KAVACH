@@ -1,233 +1,29 @@
-import React from 'react';
-import { 
-  Users, 
-  AlertTriangle, 
-  Clock, 
-  TrendingUp, 
-  Calendar, 
-  FileText, 
-  ShieldAlert, 
-  PhoneCall,
-  Activity
-} from 'lucide-react';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer
-} from 'recharts';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link, Navigate, useLocation } from 'react-router-dom';
+import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Activity, AlertTriangle, BarChart3, ChevronRight, Clock3, Download, FileAudio, FileLock2, FileText, Gauge, Map, MessageSquareWarning, PhoneCall, Radio, Send, Settings, ShieldCheck, Users, UserPlus } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
-import EscalationBanner from '../components/dashboard/EscalationBanner';
-import DistressChart from '../components/dashboard/DistressChart';
-import CaseloadTable from '../components/dashboard/CaseloadTable';
-import Navbar from '../components/common/Navbar';
+const tabs = [{ id: 'cases', label: 'Priority SLA queue', icon: AlertTriangle }, { id: 'analytics', label: 'Clinical analysis', icon: Activity }, { id: 'governance', label: 'Governance', icon: Map }, { id: 'admin', label: 'Audit & administration', icon: Settings }, { id: 'profile', label: 'My profile', icon: Settings }];
+const cases = [
+  { token: 'VIC-2026-8941', risk: 'High risk', trigger: 'Voice stress', sla: '01h 42m', delta: '+22% spike' },
+  { token: 'VIC-2026-7720', risk: 'Coercion flag', trigger: 'Safety key', sla: '03h 08m', delta: '+12% spike' },
+  { token: 'VIC-2026-5506', risk: 'Stable', trigger: 'Routine review', sla: '06h 25m', delta: '−8% recovering' },
+];
+const trajectory = [{ week: 'W1', distress: 42, stability: 65 }, { week: 'W2', distress: 55, stability: 56 }, { week: 'W3', distress: 71, stability: 45 }, { week: 'W4', distress: 64, stability: 53 }, { week: 'W5', distress: 48, stability: 68 }, { week: 'W6', distress: 52, stability: 64 }];
+const districts = [{ district: 'Khordha', cases: 86 }, { district: 'Cuttack', cases: 64 }, { district: 'Puri', cases: 48 }, { district: 'Ganjam', cases: 71 }, { district: 'Kalahandi', cases: 39 }];
+const drivers = [{ name: 'Court intimidation', value: 32 }, { name: 'Somatic trauma', value: 25 }, { name: 'Social boycott', value: 23 }, { name: 'Relief hardship', value: 20 }];
+const audit = [{ time: '09:42:18', user: 'OFF-KHD-024', action: 'Authorized case view', target: 'VIC-2026-8941', ip: '10.42.18.201' }, { time: '09:39:46', user: 'CNS-KHD-008', action: 'Encrypted call assigned', target: 'VIC-2026-7720', ip: '10.42.16.082' }, { time: '09:35:02', user: 'OFF-KHD-024', action: 'SLA dispatch created', target: 'VIC-2026-5506', ip: '10.42.18.201' }];
+const Card = ({ children, className = '' }) => <section className={`min-w-0 rounded-xl border border-slate-200 bg-white p-5 shadow-sm ${className}`}>{children}</section>;
+const badge = (risk) => risk === 'High risk' ? 'bg-red-100 text-red-700 ring-red-200' : risk === 'Coercion flag' ? 'bg-amber-100 text-amber-800 ring-amber-200' : 'bg-emerald-100 text-emerald-800 ring-emerald-200';
 
-// Mock Data
-const mockData = {
-  escalationAlerts: [
-    { id: 1, victimId: 'VIC-8992', description: 'No response to consecutive daily check-ins. Distress score elevated.', timeRemaining: '2h 15m left', severity: 'critical' },
-    { id: 2, victimId: 'VIC-4011', description: 'Safety perception dropped below threshold during last assessment.', timeRemaining: '4h 30m left', severity: 'high' },
-    { id: 3, victimId: 'VIC-7734', description: 'Missed scheduled counseling session. Unable to reach emergency contact.', timeRemaining: '5h 00m left', severity: 'high' },
-  ],
-  distressTimeline: [
-    { name: 'Mon', distressScore: 65, hopeIndex: 40, safetyPerception: 50 },
-    { name: 'Tue', distressScore: 68, hopeIndex: 38, safetyPerception: 45 },
-    { name: 'Wed', distressScore: 60, hopeIndex: 45, safetyPerception: 55 },
-    { name: 'Thu', distressScore: 55, hopeIndex: 50, safetyPerception: 65 },
-    { name: 'Fri', distressScore: 45, hopeIndex: 60, safetyPerception: 75 },
-    { name: 'Sat', distressScore: 42, hopeIndex: 65, safetyPerception: 78 },
-    { name: 'Sun', distressScore: 38, hopeIndex: 70, safetyPerception: 85 },
-  ],
-  monthlyTrends: [
-    { name: 'Jan', newCases: 45, resolved: 30, escalated: 5 },
-    { name: 'Feb', newCases: 52, resolved: 38, escalated: 8 },
-    { name: 'Mar', newCases: 48, resolved: 42, escalated: 4 },
-    { name: 'Apr', newCases: 61, resolved: 45, escalated: 12 },
-    { name: 'May', newCases: 55, resolved: 50, escalated: 6 },
-    { name: 'Jun', newCases: 40, resolved: 60, escalated: 3 },
-  ],
-  districtStats: [
-    { id: 1, name: 'North District', activeCases: 145, riskLevel: 'red' },
-    { id: 2, name: 'South District', activeCases: 89, riskLevel: 'green' },
-    { id: 3, name: 'East District', activeCases: 112, riskLevel: 'amber' },
-    { id: 4, name: 'West District', activeCases: 156, riskLevel: 'red' },
-    { id: 5, name: 'Central District', activeCases: 74, riskLevel: 'green' },
-  ],
-  counselorCaseload: [
-    { name: 'Priya S.', caseId: 'CAS-1029', riskLevel: 'Critical', lastCheckIn: '2 hours ago', trend: 'declining', distressScore: 85 },
-    { name: 'Rahul M.', caseId: 'CAS-1045', riskLevel: 'High', lastCheckIn: '5 hours ago', trend: 'improving', distressScore: 72 },
-    { name: 'Anita K.', caseId: 'CAS-1088', riskLevel: 'Moderate', lastCheckIn: '1 day ago', trend: 'stable', distressScore: 45 },
-    { name: 'Vikram D.', caseId: 'CAS-1102', riskLevel: 'Low', lastCheckIn: '2 days ago', trend: 'improving', distressScore: 25 },
-    { name: 'Sneha R.', caseId: 'CAS-1134', riskLevel: 'High', lastCheckIn: '4 hours ago', trend: 'declining', distressScore: 78 },
-  ]
-};
+function CasesView() { const [revealed, setRevealed] = useState([]); const [message, setMessage] = useState(''); const logReveal = (token) => { setRevealed([...revealed, token]); setMessage(`Authorized access recorded for ${token}.`); }; return <div className="space-y-5"><div className="flex flex-col justify-between gap-3 lg:flex-row lg:items-end"><div><p className="text-sm font-bold uppercase tracking-wider text-slate-500">Operations center</p><h1 className="text-2xl font-bold text-slate-900">Active triage & priority SLA queue</h1></div><p className="text-sm text-slate-500">Sorted by risk signal and callback deadline</p></div><div className="flex gap-3 rounded-xl border-l-4 border-red-600 bg-red-50 p-4 text-red-950"><AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-700" /><div><p className="font-semibold">3 cases require priority review</p><p className="mt-1 text-sm">Distress above 70, coercion signals, or voice-stress triggers were detected in the last 24 hours.</p></div></div>{message && <p role="status" className="rounded-lg bg-emerald-50 p-3 text-sm font-medium text-emerald-800"><ShieldCheck className="mr-2 inline h-4 w-4" />{message}</p>}<Card className="overflow-hidden p-0"><div className="overflow-x-auto"><table className="min-w-[900px] w-full text-left text-sm"><thead className="bg-slate-100 text-xs font-bold uppercase tracking-wide text-slate-600"><tr><th className="px-5 py-4">Case token</th><th className="px-5 py-4">Risk signal</th><th className="px-5 py-4">SLA callback</th><th className="px-5 py-4">Trajectory</th><th className="px-5 py-4">Actions</th></tr></thead><tbody className="divide-y divide-slate-200">{cases.map((item) => <tr key={item.token} className="hover:bg-slate-50"><td className="px-5 py-4"><button onClick={() => logReveal(item.token)} className="font-mono font-bold text-emerald-800 underline-offset-2 hover:underline">{revealed.includes(item.token) ? 'Authorized record open' : item.token}</button><p className="mt-1 text-xs text-slate-500">Access is audit logged</p></td><td className="px-5 py-4"><span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ring-1 ${badge(item.risk)}`}>{item.risk}</span><p className="mt-2 text-xs text-slate-600">{item.trigger}</p></td><td className="px-5 py-4"><span className="font-mono font-bold text-slate-900">{item.sla}</span><p className="mt-1 text-xs text-slate-500">remaining</p></td><td className={`px-5 py-4 font-semibold ${item.delta.includes('+') ? 'text-red-700' : 'text-emerald-700'}`}>{item.delta}</td><td className="px-5 py-4"><div className="flex flex-wrap gap-2"><button className="action"><PhoneCall className="h-3.5 w-3.5" />Encrypted call</button><button className="action">Assign</button><button className="action">Dispatch</button></div></td></tr>)}</tbody></table></div></Card></div>; }
 
-const StatCard = ({ title, value, icon: Icon, trend, trendLabel, iconColor, textColor }) => (
-  <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
-    <div className="flex justify-between items-start mb-2">
-      <h3 className="text-sm font-medium text-gray-500">{title}</h3>
-      <div className={`p-2 rounded-lg bg-gray-50 ${iconColor}`}>
-        <Icon className="w-5 h-5" />
-      </div>
-    </div>
-    <div className="mt-2">
-      <span className={`text-3xl font-bold ${textColor || 'text-gray-900'}`}>{value}</span>
-    </div>
-    {trend && (
-      <div className="mt-2 flex items-center text-sm">
-        <span className={trend.startsWith('+') ? 'text-[#38A169]' : 'text-[#C05621]'}>
-          {trend}
-        </span>
-        <span className="text-gray-500 ml-2">{trendLabel}</span>
-      </div>
-    )}
-  </div>
-);
+function AnalyticsView() { return <div className="space-y-5"><div><p className="text-sm font-bold uppercase tracking-wider text-slate-500">Protected case workspace</p><h1 className="text-2xl font-bold text-slate-900">Deep clinical analysis & session memory</h1></div><div className="grid gap-5 xl:grid-cols-3"><Card className="xl:col-span-2"><h2 className="font-bold text-slate-900">Trajectory with legal milestones</h2><p className="mt-1 text-sm text-slate-500">Case token VIC-2026-8941 · FIR filed W2 · Witness statement W4</p><div className="mt-5 h-72"><ResponsiveContainer width="100%" height="100%"><LineChart data={trajectory} margin={{ top: 10, right: 12, left: -18, bottom: 4 }}><CartesianGrid stroke="#E2E8F0" strokeDasharray="3 3" vertical={false}/><XAxis dataKey="week" tickLine={false} axisLine={false}/><YAxis tickLine={false} axisLine={false}/><Tooltip/><Line dataKey="distress" name="Distress signal" stroke="#DC2626" strokeWidth={3}/><Line dataKey="stability" name="Stability signal" stroke="#1C4E3D" strokeWidth={3}/></LineChart></ResponsiveContainer></div></Card><Card><div className="flex items-center gap-2"><FileLock2 className="h-5 w-5 text-emerald-800"/><h2 className="font-bold text-slate-900">AI session memory</h2></div><p className="mt-4 text-sm leading-6 text-slate-700">Recent check-ins show improved engagement after the scheduled hearing. Primary anxiety remains travel safety and contact from local intermediaries.</p><div className="mt-5 border-t border-slate-200 pt-4 text-xs text-slate-500">Summary excludes raw PII transcripts. Restricted to assigned care team.</div></Card></div><div className="grid gap-5 lg:grid-cols-2"><Card><div className="flex items-center gap-2"><FileAudio className="h-5 w-5 text-slate-700"/><h2 className="font-bold">Voice acoustic & coercion review</h2></div><div className="mt-5 flex h-16 items-center gap-1 rounded-lg bg-slate-900 px-4" aria-label="Simulated audio waveform">{[20,35,55,28,70,48,80,44,25,62,76,31,52,68,36,24].map((height, i) => <i key={i} className="w-1 rounded bg-amber-400" style={{ height: `${height}%` }}/>)}</div><button className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-emerald-800"><Radio className="h-4 w-4"/>Review protected recording</button></Card><Card><h2 className="font-bold">Regional speech-to-text</h2><p className="mt-3 rounded-lg bg-slate-50 p-4 text-sm leading-6 text-slate-700">“I prefer to speak after the hearing. Please call through the approved window.”</p><div className="mt-4 grid grid-cols-3 gap-3 text-center"><Metric label="Pitch jitter" value="1.8%"/><Metric label="Speech tempo" value="132 wpm"/><Metric label="Pauses" value="6"/></div></Card></div></div>; }
+const Metric = ({ label, value }) => <div className="rounded-lg border border-slate-200 p-3"><p className="text-lg font-bold text-slate-900">{value}</p><p className="mt-1 text-xs text-slate-500">{label}</p></div>;
 
-const AuthorityDashboard = () => {
-  return (
-    <div className="min-h-screen bg-[#F8FAF9] font-sans">
-      <Navbar />
+function GovernanceView() { const colors = ['#DC2626','#D97706','#1C4E3D','#64748B']; return <div className="space-y-5"><div><p className="text-sm font-bold uppercase tracking-wider text-slate-500">State oversight</p><h1 className="text-2xl font-bold text-slate-900">District & state governance</h1></div><div className="grid gap-4 md:grid-cols-3"><Metric label="Active monitored victims" value="308"/><Metric label="Average SLA resolution" value="02h 18m"/><Metric label="IVRS / WhatsApp / Web" value="44 / 31 / 25%"/></div><div className="grid gap-5 xl:grid-cols-2"><Card><h2 className="font-bold">District priority distribution</h2><div className="mt-4 h-72"><ResponsiveContainer width="100%" height="100%"><BarChart data={districts}><CartesianGrid stroke="#E2E8F0" vertical={false}/><XAxis dataKey="district" tickLine={false} axisLine={false}/><YAxis tickLine={false} axisLine={false}/><Tooltip/><Bar dataKey="cases" fill="#1C4E3D" radius={[4,4,0,0]}/></BarChart></ResponsiveContainer></div></Card><Card><h2 className="font-bold">Reported distress drivers</h2><div className="mt-4 flex h-72 flex-col sm:flex-row sm:items-center"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={drivers} dataKey="value" nameKey="name" innerRadius={55} outerRadius={85}>{drivers.map((_, i) => <Cell key={i} fill={colors[i]}/>)}</Pie><Tooltip/></PieChart></ResponsiveContainer><ul className="shrink-0 space-y-2 text-sm">{drivers.map((item, i) => <li key={item.name}><i className="mr-2 inline-block h-2.5 w-2.5 rounded-full" style={{ background: colors[i] }}/>{item.name} · {item.value}%</li>)}</ul></div></Card></div><Card className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="font-bold">Official compliance report</h2><p className="mt-1 text-sm text-slate-600">Anonymized SC/ST Act and DPDP Act 2023 reporting dataset.</p></div><button className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-900 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-800"><Download className="h-4 w-4"/>Export PDF / Excel</button></Card></div>; }
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
-        {/* Escalation Alerts */}
-        <EscalationBanner alerts={mockData.escalationAlerts} />
+function AdminView() { return <div className="space-y-5"><div><p className="text-sm font-bold uppercase tracking-wider text-slate-500">System controls</p><h1 className="text-2xl font-bold text-slate-900">Administration & immutable audit logs</h1></div><div className="grid gap-5 lg:grid-cols-3"><Card className="lg:col-span-2"><div className="flex items-center justify-between"><h2 className="font-bold">DPDP compliance audit feed</h2><span className="inline-flex items-center gap-2 text-xs font-bold text-emerald-800"><i className="h-2 w-2 rounded-full bg-emerald-600"/>Immutable stream</span></div><div className="mt-4 overflow-x-auto"><table className="min-w-[680px] w-full text-left text-sm"><thead className="border-b border-slate-200 text-xs uppercase text-slate-500"><tr><th className="pb-3">Timestamp</th><th className="pb-3">User ID</th><th className="pb-3">Action</th><th className="pb-3">Target token</th><th className="pb-3">IP address</th></tr></thead><tbody className="divide-y divide-slate-100">{audit.map((row) => <tr key={row.time}><td className="py-3 font-mono">{row.time}</td><td className="py-3">{row.user}</td><td className="py-3">{row.action}</td><td className="py-3 font-mono">{row.target}</td><td className="py-3 font-mono text-slate-500">{row.ip}</td></tr>)}</tbody></table></div></Card><Card><UserPlus className="h-6 w-6 text-emerald-800"/><h2 className="mt-3 font-bold">RBAC manager</h2><p className="mt-2 text-sm leading-6 text-slate-600">Invite and verify counselors or welfare officers for assigned district jurisdictions.</p><button className="mt-5 rounded-lg border border-emerald-800 px-4 py-2 text-sm font-bold text-emerald-900 hover:bg-emerald-50">Invite authorized user</button></Card></div><div className="grid gap-5 md:grid-cols-2"><Card><ShieldCheck className="h-6 w-6 text-emerald-800"/><h2 className="mt-3 font-bold">AES-256 field encryption</h2><p className="mt-2 text-sm text-slate-600">All protected fields are encrypted at rest and in transit.</p><p className="mt-4 font-mono text-sm font-bold text-emerald-800">STATUS: HEALTHY</p></Card><Card><Gauge className="h-6 w-6 text-amber-700"/><h2 className="mt-3 font-bold">Consent controls</h2><p className="mt-2 text-sm text-slate-600">12 consent changes await jurisdictional review.</p><button className="mt-4 text-sm font-bold text-emerald-800 underline">Review consent queue</button></Card></div></div>; }
 
-        {/* Metric Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard 
-            title="Active Cases" 
-            value="432" 
-            icon={Users} 
-            trend="+12%" 
-            trendLabel="vs last month"
-            iconColor="text-[#1C4E3D]"
-          />
-          <StatCard 
-            title="High Risk Alerts" 
-            value="28" 
-            icon={AlertTriangle} 
-            trend="+4" 
-            trendLabel="since yesterday"
-            iconColor="text-[#C05621]"
-            textColor="text-[#C05621]"
-          />
-          <StatCard 
-            title="Avg Response Time" 
-            value="1.4h" 
-            icon={Clock} 
-            trend="-0.2h" 
-            trendLabel="vs last week"
-            iconColor="text-[#E0A96D]"
-          />
-          <StatCard 
-            title="Resolution Rate" 
-            value="84%" 
-            icon={TrendingUp} 
-            trend="+2.5%" 
-            trendLabel="vs last month"
-            iconColor="text-[#38A169]"
-            textColor="text-[#38A169]"
-          />
-        </div>
-
-        {/* Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          
-          {/* LEFT COLUMN */}
-          <div className="lg:col-span-2 space-y-6">
-            
-            {/* Distress Trajectory */}
-            <DistressChart data={mockData.distressTimeline} title="Distress Trajectory — All Active Cases" />
-
-            {/* Monthly Trends */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Monthly Case Trends</h3>
-              <div className="w-full h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={mockData.monthlyTrends} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6B7280' }} dy={10} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6B7280' }} />
-                    <Tooltip cursor={{ fill: '#F8FAF9' }} />
-                    <Legend wrapperStyle={{ paddingTop: '10px' }} />
-                    <Bar dataKey="newCases" name="New Cases" fill="#1C4E3D" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="resolved" name="Resolved" fill="#38A169" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="escalated" name="Escalated" fill="#C05621" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-          </div>
-
-          {/* RIGHT COLUMN */}
-          <div className="space-y-6">
-            
-            {/* Quick Actions */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
-              <div className="grid grid-cols-1 gap-3">
-                <button className="flex items-center gap-3 w-full p-3 text-left rounded-xl hover:bg-[#F3F6F4] transition-colors border border-gray-50 group">
-                  <div className="bg-emerald-100 p-2 rounded-lg text-[#1C4E3D] group-hover:bg-[#1C4E3D] group-hover:text-white transition-colors">
-                    <Calendar className="w-5 h-5" />
-                  </div>
-                  <span className="font-medium text-gray-700">Schedule Check-In</span>
-                </button>
-                <button className="flex items-center gap-3 w-full p-3 text-left rounded-xl hover:bg-[#F3F6F4] transition-colors border border-gray-50 group">
-                  <div className="bg-blue-100 p-2 rounded-lg text-blue-700 group-hover:bg-blue-700 group-hover:text-white transition-colors">
-                    <FileText className="w-5 h-5" />
-                  </div>
-                  <span className="font-medium text-gray-700">Generate Report</span>
-                </button>
-                <button className="flex items-center gap-3 w-full p-3 text-left rounded-xl hover:bg-orange-50 transition-colors border border-gray-50 group">
-                  <div className="bg-orange-100 p-2 rounded-lg text-[#C05621] group-hover:bg-[#C05621] group-hover:text-white transition-colors">
-                    <ShieldAlert className="w-5 h-5" />
-                  </div>
-                  <span className="font-medium text-gray-700">Emergency Protocol</span>
-                </button>
-                <button className="flex items-center gap-3 w-full p-3 text-left rounded-xl hover:bg-[#F3F6F4] transition-colors border border-gray-50 group">
-                  <div className="bg-gray-100 p-2 rounded-lg text-gray-700 group-hover:bg-gray-700 group-hover:text-white transition-colors">
-                    <PhoneCall className="w-5 h-5" />
-                  </div>
-                  <span className="font-medium text-gray-700">Contact Supervisor</span>
-                </button>
-              </div>
-            </div>
-
-            {/* District Overview */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">District Overview</h3>
-              <div className="space-y-3">
-                {mockData.districtStats.map(district => (
-                  <div key={district.id} className="flex items-center justify-between p-3 bg-[#F8FAF9] rounded-xl">
-                    <span className="font-medium text-gray-700">{district.name}</span>
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm text-gray-500">{district.activeCases} cases</span>
-                      <div className={`w-3 h-3 rounded-full ${
-                        district.riskLevel === 'red' ? 'bg-[#C05621]' : 
-                        district.riskLevel === 'amber' ? 'bg-[#E0A96D]' : 'bg-[#38A169]'
-                      }`}></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        {/* Bottom Section: Active Caseload */}
-        <CaseloadTable cases={mockData.counselorCaseload} />
-        
-      </main>
-    </div>
-  );
-};
-
-export default AuthorityDashboard;
+export default function AuthorityDashboard() { const { user } = useAuth(); const { pathname } = useLocation(); const [now, setNow] = useState(new Date()); useEffect(() => { const id = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(id); }, []); const last = pathname.split('/').pop(); const active = tabs.some((item) => item.id === last) ? last : 'cases'; if (pathname === '/authority/dashboard' || pathname === '/admin/dashboard') return <Navigate to="/admin/dashboard/cases" replace/>; const view = { cases: <CasesView/>, analytics: <AnalyticsView/>, governance: <GovernanceView/>, admin: <AdminView/> }[active]; return <div className="min-h-screen bg-slate-100 text-slate-800"><header className="sticky top-0 z-40 border-b border-slate-700 bg-slate-900 text-white"><div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-3 px-4 py-3"><div><p className="text-xs font-bold uppercase tracking-wider text-slate-400">Sahayak Kavach</p><h1 className="font-semibold">SC/ST Atrocity Monitoring Portal</h1></div><div className="flex flex-wrap items-center gap-3 text-xs"><span className="rounded-md bg-slate-700 px-2.5 py-1.5 font-semibold">{user?.role === 'ROLE_COUNSELOR' ? 'Counselor' : 'District Welfare Officer'} — {user?.district || 'Khordha'}</span><span className="font-mono text-slate-300">{now.toLocaleTimeString('en-IN')}</span><span className="inline-flex items-center gap-1.5 text-emerald-300"><i className="h-2 w-2 rounded-full bg-emerald-400"/>Audit log immutable</span></div></div></header><div className="mx-auto flex max-w-[1600px]"><aside className="hidden w-64 shrink-0 border-r border-slate-800 bg-slate-900 p-3 lg:block"><nav aria-label="Authority dashboard" className="space-y-1">{tabs.map(({ id,label,icon: Icon }) => <Link key={id} to={`/admin/dashboard/${id}`} className={`flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold ${active === id ? 'bg-emerald-900 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}><Icon className="h-5 w-5"/>{label}</Link>)}</nav></aside><main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8"><nav aria-label="Authority dashboard" className="mb-5 flex overflow-x-auto border-b border-slate-200 lg:hidden">{tabs.map(({id,label}) => <Link key={id} to={`/admin/dashboard/${id}`} className={`shrink-0 border-b-2 px-3 py-2 text-sm font-semibold ${active === id ? 'border-emerald-800 text-emerald-900' : 'border-transparent text-slate-600'}`}>{label}</Link>)}</nav>{view}</main></div></div>; }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link, Navigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { 
   Shield, 
   Heart, 
@@ -20,7 +20,7 @@ import QuickExitButton from '../components/common/QuickExitButton';
 const LoginPage = () => {
   const [activeTab, setActiveTab] = useState('victim'); // 'victim' or 'authority'
   const navigate = useNavigate();
-  const { loginVictim, loginAuthority, loginDemo, isAuthenticated, user, isLoading } = useAuth();
+  const { loginVictim, loginAuthority, loginDemo } = useAuth();
   const [demoLoading, setDemoLoading] = useState(null);
 
   // Tab 1: Victim State
@@ -192,11 +192,6 @@ const LoginPage = () => {
       setIsAuthLoading(false);
     }
   };
-
-  if (!isLoading && isAuthenticated && user) {
-    const dest = user.role === ROLE_VICTIM ? '/victim/dashboard' : '/authority/dashboard';
-    return <Navigate to={dest} replace />;
-  }
 
   return (
     <div className="min-h-screen bg-[#F8FAF9] flex flex-col items-center justify-center p-4 relative overflow-hidden">

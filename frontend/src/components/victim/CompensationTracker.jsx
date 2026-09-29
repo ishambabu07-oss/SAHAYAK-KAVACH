@@ -1,0 +1,4 @@
+import React from 'react';
+const stages = [['Application received', 'Completed'], ['District verification', 'In review'], ['Sanction order', 'Pending'], ['Relief disbursement', 'Pending']];
+const CompensationTracker = () => <section className="rounded-2xl border border-[#D1E7DD] bg-white p-6 shadow-sm"><h2 className="font-bold">SC/ST Act relief compensation</h2><p className="mt-1 text-sm text-slate-600">Claim reference: <span className="font-mono">REL-2026-1184</span></p><ol className="mt-5 space-y-4">{stages.map(([title, status], index) => <li key={title} className="flex gap-3"><span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-bold ${index === 0 ? 'bg-[#D1E7DD] text-[#1C4E3D]' : index === 1 ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-500'}`}>{index + 1}</span><div><b className="text-sm">{title}</b><p className="text-xs text-slate-500">{status}</p></div></li>)}</ol></section>;
+export default CompensationTracker;

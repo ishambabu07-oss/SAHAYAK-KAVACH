@@ -12,6 +12,9 @@ const RegisterPage = lazy(() => import('./pages/RegisterPage'));
 const VictimDashboard = lazy(() => import('./pages/VictimDashboard'));
 const CheckInPage = lazy(() => import('./pages/CheckInPage'));
 const AuthorityDashboard = lazy(() => import('./pages/AuthorityDashboard'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const CommunicationHub = lazy(() => import('./pages/CommunicationHub'));
+const FeatureDashboard = lazy(() => import('./pages/FeatureDashboard'));
 const UnauthorizedPage = lazy(() => import('./pages/UnauthorizedPage'));
 
 function App() {
@@ -33,6 +36,21 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              {['checkin', 'trends', 'support', 'settings'].map((view) => (
+                <Route
+                  key={view}
+                  path={`/victim/dashboard/${view}`}
+                  element={
+                    <ProtectedRoute allowedRoles={['ROLE_VICTIM']}>
+                      <VictimDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+              ))}
+              <Route
+                path="/victim/dashboard/profile"
+                element={<ProtectedRoute allowedRoles={['ROLE_VICTIM']}><ProfilePage /></ProtectedRoute>}
+              />
               <Route
                 path="/victim/checkin"
                 element={
@@ -48,6 +66,29 @@ function App() {
                     <AuthorityDashboard />
                   </ProtectedRoute>
                 }
+              />
+              <Route
+                path="/admin/dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={['ROLE_COUNSELOR', 'ROLE_OFFICER', 'ROLE_DISTRICT_OFFICER', 'ROLE_STATE_NODAL']}>
+                    <AuthorityDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              {['cases', 'analytics', 'governance', 'admin'].map((view) => (
+                <Route
+                  key={view}
+                  path={`/admin/dashboard/${view}`}
+                  element={
+                    <ProtectedRoute allowedRoles={['ROLE_COUNSELOR', 'ROLE_OFFICER', 'ROLE_DISTRICT_OFFICER', 'ROLE_STATE_NODAL']}>
+                      <AuthorityDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+              ))}
+              <Route
+                path="/admin/dashboard/profile"
+                element={<ProtectedRoute allowedRoles={['ROLE_COUNSELOR', 'ROLE_OFFICER', 'ROLE_DISTRICT_OFFICER', 'ROLE_STATE_NODAL']}><ProfilePage /></ProtectedRoute>}
               />
               <Route path="/" element={<Navigate to="/login" replace />} />
               <Route path="*" element={<Navigate to="/login" replace />} />

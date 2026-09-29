@@ -166,7 +166,7 @@ const RegisterPage = () => {
               }`}
             >
               <Heart className={`w-4 h-4 ${activeTab === 'victim' ? 'text-[#2D6A4F]' : 'text-gray-400'}`} />
-              <span>Survivor Enrolment</span>
+              <span>Victim Enrollment</span>
             </button>
 
             <button

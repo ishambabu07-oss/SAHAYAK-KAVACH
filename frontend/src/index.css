@@ -2,6 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .action {
+    @apply inline-flex items-center gap-1 rounded border border-slate-300 px-2 py-1 text-xs font-semibold hover:bg-slate-100;
+  }
+
+  /* The authority command center keeps navigation stable beside dense table views. */
+  @media (min-width: 1024px) {
+    aside:has(nav[aria-label="Authority dashboard"]) {
+      width: 18rem;
+      min-width: 18rem;
+      height: calc(100vh - 65px);
+      position: sticky;
+      top: 65px;
+      align-self: flex-start;
+      overflow-y: auto;
+    }
+  }
+}
+
 @layer base {
   body {
     background-color: #F8FAF9;

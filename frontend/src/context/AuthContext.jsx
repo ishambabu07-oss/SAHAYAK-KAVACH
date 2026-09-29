@@ -5,6 +5,8 @@ const AuthContext = createContext();
 export const ROLE_VICTIM = 'ROLE_VICTIM';
 export const ROLE_COUNSELOR = 'ROLE_COUNSELOR';
 export const ROLE_OFFICER = 'ROLE_OFFICER';
+export const ROLE_DISTRICT_OFFICER = 'ROLE_DISTRICT_OFFICER';
+export const ROLE_STATE_NODAL = 'ROLE_STATE_NODAL';
 
 export const DEMO_ACCOUNTS = {
   victim: {
@@ -211,6 +213,15 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('sahayak_token');
   };
 
+  const updateProfile = (updates) => {
+    setUser((currentUser) => {
+      if (!currentUser) return currentUser;
+      const updatedUser = { ...currentUser, ...updates };
+      localStorage.setItem('sahayak_user', JSON.stringify(updatedUser));
+      return updatedUser;
+    });
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -222,6 +233,7 @@ export const AuthProvider = ({ children }) => {
         registerVictim,
         loginAuthority,
         registerAuthority,
+        updateProfile,
         logout,
       }}
     >

@@ -6,7 +6,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer
 } from 'recharts';
 
@@ -28,24 +27,28 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 const DistressChart = ({ data, title }) => {
   return (
-    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-full">
-      {title && <h3 className="text-lg font-semibold text-gray-800 mb-4">{title}</h3>}
-      <div className="w-full" style={{ height: '350px' }}>
+    <div className="min-w-0 bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100 h-full">
+      {title && <h3 className="text-lg font-semibold text-gray-800 mb-4 break-words">{title}</h3>}
+      <div className="mb-4 flex flex-wrap gap-x-4 gap-y-2 text-xs sm:text-sm text-gray-600" aria-label="Chart legend">
+        <span className="inline-flex items-center gap-2"><i className="h-2.5 w-2.5 rounded-full bg-[#C05621]" />Distress Score</span>
+        <span className="inline-flex items-center gap-2"><i className="h-2.5 w-2.5 rounded-full bg-[#2D6A4F]" />Hope Index</span>
+        <span className="inline-flex items-center gap-2"><i className="h-2.5 w-2.5 rounded-full bg-[#E0A96D]" />Safety Perception</span>
+      </div>
+      <div className="w-full h-[260px] sm:h-[320px]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={data}
             margin={{
               top: 5,
-              right: 20,
+              right: 12,
               left: 0,
-              bottom: 5,
+              bottom: 12,
             }}
           >
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6B7280' }} dy={10} />
+            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6B7280' }} dy={10} interval="preserveStartEnd" />
             <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6B7280' }} />
             <Tooltip content={<CustomTooltip />} />
-            <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
             <Line
               type="monotone"
               dataKey="distressScore"

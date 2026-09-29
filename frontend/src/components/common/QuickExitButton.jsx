@@ -1,26 +1,10 @@
 import React from 'react';
-import { X } from 'lucide-react';
+import { Shield } from 'lucide-react';
 
 const QuickExitButton = () => {
-  const handleEmergencyExit = () => {
-    localStorage.clear();
-    sessionStorage.clear();
-    window.location.replace('https://www.google.com');
-  };
+  const exitSafely = () => window.location.replace('https://news.google.com');
 
-  return (
-    <button
-      onClick={handleEmergencyExit}
-      title="Quick Exit"
-      aria-label="Emergency quick exit - leaves this page immediately"
-      className="fixed bottom-6 right-6 z-50 flex items-center justify-center w-14 h-14 bg-[#C05621] text-white rounded-full shadow-lg hover:bg-red-700 transition-colors duration-200 group focus:outline-none focus:ring-4 focus:ring-red-300 animate-pulse"
-    >
-      <X size={28} />
-      <span className="absolute right-16 px-3 py-1 bg-gray-800 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
-        Quick Exit
-      </span>
-    </button>
-  );
+  return <button onClick={exitSafely} aria-label="Stealth shield: leave this workspace immediately" title="Stealth Shield — leave this page" className="fixed right-4 top-4 z-[70] inline-flex items-center gap-2 rounded-full bg-[#1C4E3D] px-3 py-2 text-sm font-bold text-white shadow-lg transition hover:bg-[#2D6A4F] focus:outline-none focus:ring-4 focus:ring-[#D1E7DD]"><Shield className="h-4 w-4"/><span className="hidden sm:inline">Stealth Shield</span></button>;
 };
 
 export default QuickExitButton;

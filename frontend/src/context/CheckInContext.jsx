@@ -37,6 +37,13 @@ export const CheckInProvider = ({ children }) => {
   const [checkInHistory, setCheckInHistory] = useState(generateMockHistory());
   const [isCheckInActive, setIsCheckInActive] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [communicationPreferences, setCommunicationPreferences] = useState({ channel: 'ivrs', timeSlot: 'Evening 6:00 PM', safetyKey: '..' });
+  const [callbackRequest, setCallbackRequest] = useState(null);
+  const [fieldDispatches, setFieldDispatches] = useState({});
+
+  const requestCallback = () => setCallbackRequest({ status: 'Counselor assigned', requestedAt: new Date().toISOString(), eta: 'within 30 mins' });
+  const updateCommunicationPreferences = (updates) => setCommunicationPreferences((current) => ({ ...current, ...updates }));
+  const updateFieldDispatch = (token, status) => setFieldDispatches((current) => ({ ...current, [token]: status }));
 
   const startCheckIn = () => {
     setIsCheckInActive(true);
@@ -99,6 +106,12 @@ export const CheckInProvider = ({ children }) => {
       submitResponse,
       completeCheckIn,
       getWellbeingTrend
+      , communicationPreferences
+      , updateCommunicationPreferences
+      , callbackRequest
+      , requestCallback
+      , fieldDispatches
+      , updateFieldDispatch
     }}>
       {children}
     </CheckInContext.Provider>
